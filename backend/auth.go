@@ -1,25 +1,15 @@
-package models
+package main
 
 import (
 	"fmt"
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"github.com/joho/godotenv"
 )
 
-// User model
-type User struct {
-	ID         uint   `json:"id" gorm:"primaryKey"`
-	Username   string `json:"username"`
-	Email      string `json:"email"`
-	PhoneNumber string `json:"phone_number"` // Kolom baru untuk nomor telepon
-	Password   string `json:"password"`
-}
-
-// InitDB connects to the database using GORM
 var DB *gorm.DB
 var err error
 
@@ -30,7 +20,7 @@ func InitDB() {
 		log.Fatal("Error loading .env file")
 	}
 
-	// Set up MySQL connection string from .env
+	// Set up MySQL connection string
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", 
 		os.Getenv("DB_USER"), 
 		os.Getenv("DB_PASSWORD"), 
@@ -38,7 +28,7 @@ func InitDB() {
 		os.Getenv("DB_PORT"), 
 		os.Getenv("DB_NAME"))
 
-	// Connect to the database using GORM
+	// Connect to the database
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
@@ -46,13 +36,15 @@ func InitDB() {
 	fmt.Println("Database connected successfully")
 }
 
-func MigrateDB() {
-	// Ensure DB is initialized
-	if DB == nil {
-		log.Fatal("Database connection is nil")
-	}
+type User struct {
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
 
-	// Migrate the User model to the database
+func MigrateDB() {
+	// Migrasi schema
 	err := DB.AutoMigrate(&User{})
 	if err != nil {
 		log.Fatal("Error migrating database:", err)
